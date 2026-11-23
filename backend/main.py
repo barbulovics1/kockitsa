@@ -1,4 +1,3 @@
-import sys
 import os
 from decimal import Decimal
 from pathlib import Path
