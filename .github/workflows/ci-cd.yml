@@ -148,7 +148,9 @@ jobs:
     needs: [lint, build, test]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    environment: production
+    environment:
+      name: production
+      url: https://kockitsa.onrender.com
     permissions:
       contents: read
       packages: write
@@ -177,9 +179,5 @@ jobs:
         env:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
         run: |
-          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
-            echo "::warning::Skrivnost RENDER_DEPLOY_HOOK še ni nastavljena, slika je samo objavljena v registru."
-            exit 0
-          fi
           SLIKA_URL=$(python3 -c "import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1], safe=''))" "$SLIKA:${{ github.sha }}")
           curl --fail --silent --show-error -X POST "$RENDER_DEPLOY_HOOK&imgURL=$SLIKA_URL"

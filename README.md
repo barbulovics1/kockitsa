@@ -1,4 +1,7 @@
 # KockiTsa
+[![CI/CD](https://github.com/barbulovics1/kockitsa/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/barbulovics1/kockitsa/actions/workflows/ci-cd.yml)
+
+**Nameščena aplikacija:** https://kockitsa.onrender.com (na brezplačnem načrtu se po neaktivnosti zbuja do ene minute)
 
 KockiTsa je spletna tržnica, na kateri posamezniki prodajajo in kupujejo nove in rabljene LEGO komplete. Vsak oglas je vezan na komplet iz kataloga in ga pred objavo pregleda administrator. Kupec objavljen oglas rezervira, prodajalec po prevzemu potrdi prodajo. Kupec lahko shrani iskanje kompleta z najvišjo ceno in sprejemljivimi stanji, rešitev pa mu pokaže oglase, ki iskanju ustrezajo.
 
@@ -55,6 +58,26 @@ Potrebni so Docker Desktop, Python 3.13 in brezplačen ključ za [Brickset API](
 
 Ob spremembi `db/schema.sql` bazo izbrišite in ustvarite na novo: `docker compose down -v`, nato koraka 2 in 4.
 
+## Cevovod CI/CD
+
+Cevovod (`.github/workflows/ci-cd.yml`) se zažene ob vsakem pull requestu v `main` in ob vsakem pushu na `main`.
+
+1. **lint** – Ruff preveri kodo backenda, ESLint pa JavaScript frontenda (`pyproject.toml`, `eslint.config.js`).
+2. **build** – namesti odvisnosti (s predpomnjenjem pip), prevede kodo, preveri, da se aplikacija naloži, ter pripravi paket aplikacije in Docker sliko kot artefakta.
+3. **test** – pytest zažene teste backenda na testni bazi PostgreSQL, Vitest pa teste frontenda; poročilo o pokritosti kode se shrani kot artefakt.
+4. **deploy** – samo ob pushu na `main` in samo, če so prejšnji trije jobi uspešni. Prenese Docker sliko iz joba build, jo objavi v GitHub Container Registry in prek deploy hooka (skrivnost v okolju `production`) sproži namestitev na Render.
+
+Backend streže tudi frontend, zato sta na istem naslovu in frontend kliče API z relativnimi potmi. Naslov podatkovne baze (Neon PostgreSQL) in ključ seje sta na Renderu nastavljena kot okoljski spremenljivki `DATABASE_URL` in `SECRET_KEY`.
+
+### Lokalni zagon testov
+
+V `.env` nastavite `TEST_DATABASE_URL` (glej `.env.example`) in ustvarite testno bazo: `docker compose exec db createdb -U kockitsa kockitsa_test`. Nato:
+
+    pip install -r requirements-dev.txt
+    pytest
+    npm ci
+    npm test
+
 ## Dokumentacija
 
 1. [Zasnova rešitve](docs/01-zasnova-resitve.md)
@@ -63,4 +86,5 @@ Ob spremembi `db/schema.sql` bazo izbrišite in ustvarite na novo: `docker compo
 4. [Arhitektura in tehnološki sklad](docs/04-arhitektura-in-tehnoloski-sklad.md)
 5. [Uporabniške zgodbe](docs/05-uporabniske-zgodbe.md)
 6. [Wireframes](docs/06-wireframes.md)
-7. [Arhitekturne odločitve (ADR)](docs/adr/)
+7. [Pregled projekta](docs/07-pregled-projekta.md)
+8. [Arhitekturne odločitve (ADR)](docs/adr/)
