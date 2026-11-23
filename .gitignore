@@ -16,3 +16,9 @@ Thumbs.db
 
 # Node
 node_modules/
+
+# Poročila o pokritosti
+.coverage
+coverage.xml
+coverage-backend/
+coverage-frontend/
