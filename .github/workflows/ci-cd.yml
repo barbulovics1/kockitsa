@@ -37,3 +37,38 @@ jobs:
 
       - name: Lint frontenda (ESLint)
         run: npm run lint
+
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Namestitev Pythona
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Namestitev odvisnosti backenda
+        run: pip install -r requirements.txt
+
+      - name: Prevajanje kode backenda
+        run: python -m compileall -q backend seed
+
+      - name: Preverjanje, da se aplikacija naloži
+        run: python -c "import backend.main"
+        env:
+          SECRET_KEY: ci-preverjanje
+
+      - name: Priprava paketa za namestitev
+        run: |
+          mkdir -p dist
+          rsync -a --exclude __pycache__ backend frontend db seed requirements.txt dist/
+
+      - name: Shranjevanje artefakta
+        uses: actions/upload-artifact@v7
+        with:
+          name: kockitsa-app
+          path: dist/
